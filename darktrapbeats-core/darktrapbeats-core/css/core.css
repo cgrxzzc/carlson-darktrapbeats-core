@@ -1,0 +1,23 @@
+.dtb-latest {
+    list-style: none;
+    padding: 0;
+}
+
+.dtb-latest li {
+    padding: 12px;
+    margin-bottom: 10px;
+    background: #1b1b2f;
+    border-radius: 6px;
+}
+
+.dtb-price {
+    color: #b58cff;
+    font-weight: bold;
+}
+
+.dtb-cta {
+    margin-top: 24px;
+    padding: 20px;
+    background: #241b35;
+    border-radius: 8px;
+}
