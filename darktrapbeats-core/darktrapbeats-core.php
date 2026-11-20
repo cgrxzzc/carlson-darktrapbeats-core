@@ -170,3 +170,22 @@ function darktrapbeats_register_patterns() {
         )
     );
 }
+
+function darktrapbeats_random_beat_button() {
+    $beats = get_posts(array(
+        'post_type'      => 'beat',
+        'posts_per_page' => 1,
+        'orderby'        => 'rand',
+        'post_status'    => 'publish'
+    ));
+
+    if (empty($beats)) {
+        return '<p>No beats available yet.</p>';
+    }
+
+    $url = get_permalink($beats[0]->ID);
+
+    return '<a class="dtb-random-button" href="' . esc_url($url) . '">Discover a Random Beat</a>';
+}
+
+add_shortcode('random_beat', 'darktrapbeats_random_beat_button');
