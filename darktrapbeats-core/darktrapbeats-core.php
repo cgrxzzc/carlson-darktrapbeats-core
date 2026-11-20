@@ -59,52 +59,76 @@ function darktrapbeats_register_content() {
 
 add_shortcode( 'latest_beats', 'darktrapbeats_latest_beats' );
 
+
 function darktrapbeats_latest_beats( $atts ) {
 
-	$atts = shortcode_atts( array(
-		'count' => 3,
-		'genre' => '',
-	), $atts, 'latest_beats' );
+    static $shown_beat_ids = array();
 
-	$args = array(
-		'post_type'   => 'beat',
-		'numberposts' => absint( $atts['count'] ),
-	);
+    $atts = shortcode_atts(
+        array(
+            'count' => 3,
+            'genre' => '',
+        ),
+        $atts,
+        'latest_beats'
+    );
 
-	if ( $atts['genre'] ) {
-		$args['tax_query'] = array(
-			array(
-				'taxonomy' => 'beat_genre',
-				'field'    => 'slug',
-				'terms'    => sanitize_title( $atts['genre'] ),
-			),
-		);
-	}
+    $args = array(
+        'post_type'      => 'beat',
+        'posts_per_page' => absint( $atts['count'] ),
+        'post_status'    => 'publish',
+        'orderby'        => 'date',
+        'order'          => 'DESC',
+        'post__not_in'   => $shown_beat_ids,
+    );
 
-	$items = get_posts( $args );
+    if ( ! empty( $atts['genre'] ) ) {
+        $args['tax_query'] = array(
+            array(
+                'taxonomy' => 'beat_genre',
+                'field'    => 'slug',
+                'terms'    => sanitize_title( $atts['genre'] ),
+            ),
+        );
+    }
 
-	if ( empty( $items ) ) {
-		return '<p class="dtb-latest-empty">Check back soon for new beats.</p>';
-	}
+    $items = get_posts( $args );
 
-	$html = '<ul class="dtb-latest">';
+    $heading = empty( $atts['genre'] )
+        ? 'Latest Beats'
+        : 'Explore ' . esc_html( ucwords( str_replace( '-', ' ', sanitize_title( $atts['genre'] ) ) ) );
 
-	foreach ( $items as $item ) {
+    $html = '<section class="dtb-latest-section">';
+    $html .= '<h2>' . $heading . '</h2>';
 
-		$price = get_post_meta( $item->ID, 'price', true );
+    if ( empty( $items ) ) {
+        return $html . '<p>No more beats available.</p></section>';
+    }
 
-		$html .= '<li><a href="' . esc_url( get_permalink( $item ) ) . '">'
-			. esc_html( get_the_title( $item ) ) . '</a>';
+    $html .= '<ul class="dtb-latest">';
 
-		if ( $price ) {
-			$html .= ' <span class="dtb-price">' . esc_html( $price ) . '</span>';
-		}
+    foreach ( $items as $item ) {
+        $shown_beat_ids[] = $item->ID;
 
-		$html .= '</li>';
-	}
+        $price = get_post_meta( $item->ID, 'price', true );
 
-	return $html . '</ul>';
+        $html .= '<li>';
+        $html .= '<a href="' . esc_url( get_permalink( $item ) ) . '">'
+            . esc_html( get_the_title( $item ) ) . '</a>';
+
+        if ( $price !== '' ) {
+            $html .= '<span class="dtb-price">$'
+                . esc_html( $price ) . '</span>';
+        }
+
+        $html .= '</li>';
+    }
+
+    $html .= '</ul></section>';
+
+    return $html;
 }
+
 
 // 2. Content filter
 // Add a call to action after single blog posts only.
@@ -171,21 +195,34 @@ function darktrapbeats_register_patterns() {
     );
 }
 
-function darktrapbeats_random_beat_button() {
-    $beats = get_posts(array(
-        'post_type'      => 'beat',
-        'posts_per_page' => 1,
-        'orderby'        => 'rand',
-        'post_status'    => 'publish'
-    ));
-
-    if (empty($beats)) {
-        return '<p>No beats available yet.</p>';
+function darktrapbeats_add_beat_details($content) {
+    if (!is_singular('beat') || !is_main_query()) {
+        return $content;
     }
 
-    $url = get_permalink($beats[0]->ID);
+    $price = get_post_meta(get_the_ID(), 'price', true);
+    $bpm = get_post_meta(get_the_ID(), 'bpm', true);
+    $key = get_post_meta(get_the_ID(), 'musical_key', true);
 
-    return '<a class="dtb-random-button" href="' . esc_url($url) . '">Discover a Random Beat</a>';
+    $details = '<section class="dtb-beat-details">';
+    $details .= '<h2>Beat Details</h2>';
+    $details .= '<ul>';
+
+    if ($price !== '') {
+        $details .= '<li>Price: $' . esc_html($price) . '</li>';
+    }
+
+    if ($bpm !== '') {
+        $details .= '<li>BPM: ' . esc_html($bpm) . '</li>';
+    }
+
+    if ($key !== '') {
+        $details .= '<li>Key: ' . esc_html($key) . '</li>';
+    }
+
+    $details .= '</ul></section>';
+
+    return $content . $details;
 }
 
-add_shortcode('random_beat', 'darktrapbeats_random_beat_button');
+add_filter('the_content', 'darktrapbeats_add_beat_details');
