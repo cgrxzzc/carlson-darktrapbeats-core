@@ -1,20 +1,48 @@
+
+/* Latest Beats sections */
+.dtb-latest-section {
+    margin: 35px 0;
+}
+
+.dtb-latest-section h2 {
+    margin-bottom: 18px;
+    color: #b56aff;
+}
+
 .dtb-latest {
     list-style: none;
     padding: 0;
+    display: grid;
+    gap: 12px;
 }
 
 .dtb-latest li {
-    padding: 12px;
-    margin-bottom: 10px;
-    background: #1b1b2f;
-    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    margin-bottom: 0;
+    background: #1d1930;
+    border: 1px solid #392653;
+    border-radius: 8px;
 }
 
-.dtb-price {
-    color: #b58cff;
+.dtb-latest li a {
+    color: #c18aff;
+    text-decoration: none;
     font-weight: bold;
 }
 
+.dtb-latest li a:hover {
+    color: white;
+}
+
+.dtb-price {
+    color: #ffffff;
+    font-weight: bold;
+}
+
+/* Call to Action */
 .dtb-cta {
     margin-top: 24px;
     padding: 20px;
@@ -22,6 +50,7 @@
     border-radius: 8px;
 }
 
+/* Random Beat Button */
 .dtb-random-button {
     display: block;
     width: fit-content;
@@ -33,4 +62,15 @@
     border-radius: 6px;
     text-decoration: none;
     font-weight: bold;
+}
+
+.dtb-random-button:hover {
+    background-color: #8b4dcc;
+    color: white;
+}
+
+/* Empty Latest Beats message */
+.dtb-latest-empty {
+    padding: 15px;
+    color: #cccccc;
 }
