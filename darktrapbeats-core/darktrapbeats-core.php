@@ -142,24 +142,31 @@ function darktrapbeats_enqueue_styles() {
 add_action( 'init', 'darktrapbeats_register_patterns' );
 
 function darktrapbeats_register_patterns() {
+    register_block_pattern(
+        'darktrapbeats/explore-beats',
+        array(
+            'title'       => 'Explore Our Beats',
+            'description' => 'A call to action for discovering beats.',
+            'categories'  => array('call-to-action'),
+            'content'     => '<!-- wp:group {"className":"dtb-cta"} -->
+<div class="wp-block-group dtb-cta">
+    <!-- wp:heading -->
+    <h2>Find Your Next Sound</h2>
+    <!-- /wp:heading -->
 
-	register_block_pattern( 'darktrapbeats/explore-beats', array(
-		'title'      => 'Explore Our Beats',
-		'categories' => array( 'call-to-action' ),
-		'content'    => '<!-- wp:group {"layout":{"type":"constrained"}} -->
-<div class="wp-block-group"><!-- wp:heading -->
-<h2 class="wp-block-heading">Find Your Sound</h2>
-<!-- /wp:heading -->
+    <!-- wp:paragraph -->
+    <p>Explore our collection of dark trap beats and find the sound for your next track.</p>
+    <!-- /wp:paragraph -->
 
-<!-- wp:paragraph -->
-<p>Explore dark trap beats, heavy 808s, and hard-hitting instrumentals for your next project.</p>
-<!-- /wp:paragraph -->
-
-<!-- wp:buttons -->
-<div class="wp-block-buttons"><!-- wp:button -->
-<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="/beats/">Browse Beats</a></div>
-<!-- /wp:button --></div>
-<!-- /wp:buttons --></div>
-<!-- /wp:group -->',
-	) );
+    <!-- wp:buttons -->
+    <div class="wp-block-buttons">
+        <!-- wp:button {"url":"/beats/"} -->
+        <div class="wp-block-button"><a class="wp-block-button__link" href="/beats/">Explore Our Beats</a></div>
+        <!-- /wp:button -->
+    </div>
+    <!-- /wp:buttons -->
+</div>
+<!-- /wp:group -->'
+        )
+    );
 }
