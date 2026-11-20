@@ -1,3 +1,4 @@
+
 <?php
 /**
  * Plugin Name: Dark Trap Beats Core
@@ -5,18 +6,18 @@
  * Version: 1.0
  * Author: Colten Carlson
  */
- 
+
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Stop if this file is opened directly.
+	exit;
 }
- 
+
 add_action( 'init', 'darktrapbeats_register_content' );
- 
+
 function darktrapbeats_register_content() {
- 
+
 	// 1. Post type
 	register_post_type( 'beat', array(
-		'labels'       => array(
+		'labels' => array(
 			'name'          => 'Beats',
 			'singular_name' => 'Beat',
 			'add_new_item'  => 'Add New Beat',
@@ -28,10 +29,10 @@ function darktrapbeats_register_content() {
 		'rewrite'      => array( 'slug' => 'beats' ),
 		'menu_icon'    => 'dashicons-format-audio',
 	) );
- 
+
 	// 2. Taxonomy
 	register_taxonomy( 'beat_genre', 'beat', array(
-		'labels'       => array(
+		'labels' => array(
 			'name'          => 'Beat Genres',
 			'singular_name' => 'Beat Genre',
 		),
@@ -39,7 +40,7 @@ function darktrapbeats_register_content() {
 		'show_in_rest' => true,
 		'rewrite'      => array( 'slug' => 'beat-genre' ),
 	) );
- 
+
 	// 3. Custom fields
 	foreach ( array( 'price', 'bpm', 'musical_key' ) as $key ) {
 		register_post_meta( 'beat', $key, array(
@@ -49,4 +50,116 @@ function darktrapbeats_register_content() {
 			'sanitize_callback' => 'sanitize_text_field',
 		) );
 	}
+}
+
+// ===== Week 5 additions =====
+
+// 1. Shortcode
+// Example: [latest_beats count="3" genre="dark-trap"]
+
+add_shortcode( 'latest_beats', 'darktrapbeats_latest_beats' );
+
+function darktrapbeats_latest_beats( $atts ) {
+
+	$atts = shortcode_atts( array(
+		'count' => 3,
+		'genre' => '',
+	), $atts, 'latest_beats' );
+
+	$args = array(
+		'post_type'   => 'beat',
+		'numberposts' => absint( $atts['count'] ),
+	);
+
+	if ( $atts['genre'] ) {
+		$args['tax_query'] = array(
+			array(
+				'taxonomy' => 'beat_genre',
+				'field'    => 'slug',
+				'terms'    => sanitize_title( $atts['genre'] ),
+			),
+		);
+	}
+
+	$items = get_posts( $args );
+
+	if ( empty( $items ) ) {
+		return '<p class="dtb-latest-empty">Check back soon for new beats.</p>';
+	}
+
+	$html = '<ul class="dtb-latest">';
+
+	foreach ( $items as $item ) {
+
+		$price = get_post_meta( $item->ID, 'price', true );
+
+		$html .= '<li><a href="' . esc_url( get_permalink( $item ) ) . '">'
+			. esc_html( get_the_title( $item ) ) . '</a>';
+
+		if ( $price ) {
+			$html .= ' <span class="dtb-price">' . esc_html( $price ) . '</span>';
+		}
+
+		$html .= '</li>';
+	}
+
+	return $html . '</ul>';
+}
+
+// 2. Content filter
+// Add a call to action after single blog posts only.
+
+add_filter( 'the_content', 'darktrapbeats_add_cta', 20 );
+
+function darktrapbeats_add_cta( $content ) {
+
+	if ( ! is_singular( 'post' ) || ! is_main_query() ) {
+		return $content;
+	}
+
+	$cta = '<div class="dtb-cta"><p>Discover your next sound.</p>'
+		. '<a href="' . esc_url( home_url( '/beats/' ) ) . '">Explore Our Beats</a></div>';
+
+	return $content . $cta;
+}
+
+// 3. Enqueue stylesheet
+
+add_action( 'wp_enqueue_scripts', 'darktrapbeats_enqueue_styles' );
+
+function darktrapbeats_enqueue_styles() {
+
+	wp_enqueue_style(
+		'darktrapbeats-core',
+		plugins_url( 'css/core.css', __FILE__ ),
+		array(),
+		'1.0'
+	);
+}
+
+// 4. Block pattern
+
+add_action( 'init', 'darktrapbeats_register_patterns' );
+
+function darktrapbeats_register_patterns() {
+
+	register_block_pattern( 'darktrapbeats/explore-beats', array(
+		'title'      => 'Explore Our Beats',
+		'categories' => array( 'call-to-action' ),
+		'content'    => '<!-- wp:group {"layout":{"type":"constrained"}} -->
+<div class="wp-block-group"><!-- wp:heading -->
+<h2 class="wp-block-heading">Find Your Sound</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>Explore dark trap beats, heavy 808s, and hard-hitting instrumentals for your next project.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:buttons -->
+<div class="wp-block-buttons"><!-- wp:button -->
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="/beats/">Browse Beats</a></div>
+<!-- /wp:button --></div>
+<!-- /wp:buttons --></div>
+<!-- /wp:group -->',
+	) );
 }
